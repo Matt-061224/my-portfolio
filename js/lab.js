@@ -1,0 +1,14 @@
+(() => {
+ const $ = id => document.getElementById(id);
+ let duration=25*60, remaining=duration, deadline=0, running=false, interval=null;
+ function render(){const m=Math.floor(remaining/60),s=remaining%60;$('timer-face').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;document.title=`${running?'▶ ':''}${$('timer-face').textContent} — Focus / Matt`;}
+ function tick(){if(running){remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));if(!remaining){running=false;clearInterval(interval);$('timer-toggle').textContent='Start again ↗';$('timer-status').textContent='Session complete. Take a breath. You earned it.';}}render();}
+ function stop(){clearInterval(interval);running=false;$('timer-toggle').textContent='Start session ↗';}
+ $('timer-toggle').addEventListener('click',()=>{if(running){tick();stop();$('timer-toggle').textContent='Resume session ↗';$('timer-status').textContent='Paused. Come back when you are ready.';}else{if(!remaining)remaining=duration;deadline=Date.now()+remaining*1000;running=true;interval=setInterval(tick,200);$('timer-toggle').textContent='Pause session';$('timer-status').textContent='One task. A little room to think.';}render();});
+ $('timer-reset').addEventListener('click',()=>{stop();remaining=duration;render();$('timer-status').textContent='A fresh start. Ready when you are.';});
+ document.querySelectorAll('[data-minutes]').forEach(button=>button.addEventListener('click',()=>{stop();duration=Number(button.dataset.minutes)*60;remaining=duration;document.querySelectorAll('[data-minutes]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();$('timer-status').textContent='Session changed. Ready when you are.';}));
+ document.addEventListener('visibilitychange',tick);window.addEventListener('pagehide',()=>clearInterval(interval));
+ const palettes=[['#53634F','#ABB79A','#E9D8BC','#BF623D'],['#293D4A','#7F9DAD','#E4E7DE','#D0AA74'],['#524456','#A994A8','#F1E8DC','#B96C55'],['#354B44','#83A293','#E9E3CC','#D79B5B'],['#3F4E65','#9AA7C0','#EEE8E0','#C77B75'],['#584D3D','#ADA085','#E9E2D3','#87977B']];let last=-1;
+ function generate(){let i;do{i=Math.floor(Math.random()*palettes.length)}while(i===last);last=i;$('palette').replaceChildren();palettes[i].forEach(hex=>{const button=document.createElement('button');button.style.backgroundColor=hex;button.setAttribute('aria-label',`Copy ${hex}`);const label=document.createElement('span');label.textContent=hex;button.append(label);button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(hex);$('palette-status').textContent=`Copied ${hex}. Ready for your next idea.`;}catch{$('palette-status').textContent=`Select and copy this colour: ${hex}`;}});$('palette').append(button);});$('palette-status').textContent='Select a colour to copy its hex code.';}
+ $('palette-generate').addEventListener('click',generate);generate();
+})();
