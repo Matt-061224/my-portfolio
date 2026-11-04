@@ -1,0 +1,4 @@
+__pycache__/
+.preview-profile/
+.git-empty-backup
+*.log
