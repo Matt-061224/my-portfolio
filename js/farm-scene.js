@@ -4,7 +4,7 @@
   const ctx = canvas.getContext('2d');
   const hint = document.getElementById('scene-hint');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const camera = { yaw: .48, targetYaw: .48, pitch: .53, targetPitch: .53, zoom: 1, targetZoom: 1 };
+  const camera = { yaw: .48, targetYaw: .48, pitch: .53, zoom: 1 };
   const view = { width: 0, height: 0, dpr: 1, cx: 0, cy: 0, scale: 1 };
   const pointer = { down: false, moved: false, x: 0, y: 0, startX: 0, startY: 0, hover: null };
   const hotspots = [];
@@ -144,7 +144,23 @@
   function drawBarn(x,z){box3d(x,.03,z,2.1,1.55,1.65,palette.red);roof(x,1.58,z,2.35,1.95,.95,palette.orange);const door=project({x,y:.65,z:z+.84});ctx.fillStyle=palette.ink;ctx.strokeStyle=palette.cream;ctx.lineWidth=2;ctx.fillRect(door.x-17,door.y-32,34,32);ctx.strokeRect(door.x-17,door.y-32,34,32);line([{x:door.x-16,y:door.y-31},{x:door.x+16,y:door.y}],palette.cream,2);line([{x:door.x+16,y:door.y-31},{x:door.x-16,y:door.y}],palette.cream,2);return project({x,y:2.6,z});}
   function drawTree(x,z,scale=1){box3d(x,.02,z,.22,.75*scale,.22,palette.woodDark);circle3d(x,.95*scale,z,.48*view.scale/view.scale*scale,palette.grassDark);circle3d(x-.18*scale,1.2*scale,z,.38*scale,palette.grass);circle3d(x+.2*scale,1.15*scale,z,.36*scale,palette.grassLight);}
   function drawField(x,z){for(let row=0;row<3;row++){const z1=z+(row-1)*.48;const p1=project({x:x-.95,y:.035,z:z1-.18}),p2=project({x:x+.95,y:.035,z:z1-.18}),p3=project({x:x+.95,y:.035,z:z1+.18}),p4=project({x:x-.95,y:.035,z:z1+.18});poly([p1,p2,p3,p4],row%2?shade(palette.soil,9):palette.soil);for(let col=0;col<5;col++){const cx=x-.76+col*.38;const cp=project({x:cx,y:.19,z:z1});ctx.fillStyle=row===1?palette.yellow:palette.grassDark;ctx.strokeStyle=palette.ink;ctx.lineWidth=1;ctx.beginPath();ctx.arc(cp.x,cp.y,Math.max(2,view.scale*.055),0,Math.PI*2);ctx.fill();ctx.stroke();}}return project({x,y:.65,z});}
-  function drawPond(x,z){const pts=[];for(let i=0;i<20;i++){const a=i/20*Math.PI*2;pts.push(project({x:x+Math.cos(a)*.85,y:.04,z:z+Math.sin(a)*.55}));}poly(pts,palette.water,palette.ink);const c=project({x,y:.06,z});ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(c.x,c.y,view.scale*.3,view.scale*.06,0,0,Math.PI*2);ctx.stroke();}
+  function drawAnimal(x,z,type='cow',flip=1){
+    const body=project({x,y:.48,z}), head=project({x:x+.34*flip,y:.63,z});
+    const scale=Math.max(7,view.scale*.2);ctx.save();ctx.lineWidth=1.5;ctx.strokeStyle=palette.ink;
+    ctx.fillStyle=type==='cow'?palette.white:'#f3d2a0';ctx.beginPath();ctx.ellipse(body.x,body.y,type==='chicken'?scale*.9:scale*1.55,type==='chicken'?scale*.7:scale*.82,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.arc(head.x,head.y,scale*.62,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.strokeStyle=palette.ink;ctx.lineWidth=2;[-.65,.55].forEach(offset=>{ctx.beginPath();ctx.moveTo(body.x+offset*scale,body.y+scale*.5);ctx.lineTo(body.x+offset*scale,body.y+scale*1.2);ctx.stroke();});
+    if(type==='cow'){ctx.fillStyle=palette.ink;ctx.beginPath();ctx.arc(body.x-scale*.45,body.y-scale*.2,scale*.26,0,Math.PI*2);ctx.arc(body.x+scale*.35,body.y+scale*.23,scale*.2,0,Math.PI*2);ctx.fill();}
+    else {ctx.fillStyle=palette.red;ctx.beginPath();ctx.arc(head.x,head.y-scale*.58,scale*.18,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=palette.orange;ctx.beginPath();ctx.moveTo(head.x+scale*.5*flip,head.y);ctx.lineTo(head.x+scale*.9*flip,head.y+scale*.12);ctx.lineTo(head.x+scale*.5*flip,head.y+scale*.24);ctx.closePath();ctx.fill();ctx.stroke();}
+    ctx.fillStyle=palette.ink;ctx.beginPath();ctx.arc(head.x+scale*.18*flip,head.y-scale*.1,1.8,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  function drawMeadow(x,z){
+    const corners=[[-1.25,-.8],[1.25,-.8],[1.25,.8],[-1.25,.8]];
+    corners.forEach(([dx,dz])=>box3d(x+dx,.02,z+dz,.1,.5,.1,palette.wood));
+    for(let i=0;i<4;i++){const a=corners[i],b=corners[(i+1)%4];line([project({x:x+a[0],y:.35,z:z+a[1]}),project({x:x+b[0],y:.35,z:z+b[1]})],palette.woodDark,3);}
+    drawAnimal(x-.45,z,'cow',1);drawAnimal(x+.55,z+.25,'chicken',-1);return project({x,y:1.05,z});
+  }
+  function drawPond(x,z){const pts=[];for(let i=0;i<20;i++){const a=i/20*Math.PI*2;pts.push(project({x:x+Math.cos(a)*.85,y:.04,z:z+Math.sin(a)*.55}));}poly(pts,palette.water,palette.ink);const c=project({x,y:.06,z});ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(c.x,c.y,view.scale*.3,view.scale*.06,0,0,Math.PI*2);ctx.stroke();return project({x,y:.75,z});}
   function drawMailbox(x,z){box3d(x,.02,z,.12,.8,.12,palette.woodDark);box3d(x,.82,z,.65,.4,.42,palette.red);const flag1=project({x:x+.28,y:1.02,z}),flag2=project({x:x+.28,y:1.55,z});line([flag1,flag2],palette.ink,3);const f=project({x:x+.46,y:1.48,z});ctx.fillStyle=palette.yellow;ctx.strokeStyle=palette.ink;ctx.lineWidth=1.5;ctx.fillRect(f.x-8,f.y-6,16,12);ctx.strokeRect(f.x-8,f.y-6,16,12);return project({x,y:1.65,z});}
   function drawWindmill(x,z,time){box3d(x,.02,z,.32,2,.32,palette.cream);roof(x,2.02,z,.65,.65,.45,palette.red);const hub=project({x,y:1.8,z:z+.18});const angle=(reducedMotion?0:time*.0012);ctx.save();ctx.translate(hub.x,hub.y);ctx.strokeStyle=palette.ink;ctx.lineWidth=3;for(let i=0;i<4;i++){ctx.save();ctx.rotate(angle+i*Math.PI/2);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-48);ctx.stroke();ctx.fillStyle=palette.cream;ctx.strokeStyle=palette.ink;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-3,-15);ctx.lineTo(-12,-47);ctx.lineTo(5,-52);ctx.lineTo(4,-15);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}ctx.fillStyle=palette.orange;ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}
   function drawSignLabels() {
@@ -155,16 +171,13 @@
 
   function draw(time) {
     camera.yaw += (camera.targetYaw-camera.yaw)*.12;
-    camera.pitch += (camera.targetPitch-camera.pitch)*.12;
-    camera.zoom += (camera.targetZoom-camera.zoom)*.12;
-    if (!reducedMotion && !pointer.down && entered && time-lastInteraction>6000) camera.targetYaw += .0012;
+    /* Camera height and distance stay fixed; only the horizontal orbit changes. */
     cameraValues(); drawSky(time); drawIsland(); drawPath(); hotspots.length=0;
     const objects=[
-      {x:-2.1,z:-1.25,draw:()=>hotspots.push({...drawHouse(-2.1,-1.25),place:'house',label:'FARMHOUSE'})},
-      {x:2.0,z:-1.55,draw:()=>hotspots.push({...drawBarn(2,-1.55),place:'barn',label:'PROJECT BARN'})},
+      {x:-1.8,z:-1.35,draw:()=>hotspots.push({...drawHouse(-1.8,-1.35),place:'house',label:'SUPPLY HOUSE'})},
       {x:-1.6,z:1.8,draw:()=>hotspots.push({...drawField(-1.6,1.8),place:'field',label:'CROP FIELD'})},
-      {x:3.4,z:1.35,draw:()=>hotspots.push({...drawMailbox(3.4,1.35),place:'mailbox',label:'MAILBOX'})},
-      {x:2.15,z:2.3,draw:()=>drawPond(2.15,2.3)},
+      {x:2.3,z:.35,draw:()=>hotspots.push({...drawMeadow(2.3,.35),place:'animals',label:'ANIMAL MEADOW'})},
+      {x:2.15,z:2.3,draw:()=>hotspots.push({...drawPond(2.15,2.3),place:'pond',label:'FISH POND'})},
       {x:.15,z:-3.1,draw:()=>drawWindmill(.15,-3.1,time)},
       {x:-4,z:-.3,draw:()=>drawTree(-4,-.3,1.05)},{x:-3.4,z:2.6,draw:()=>drawTree(-3.4,2.6,.82)},
       {x:4,z:-.3,draw:()=>drawTree(4,-.3,.95)},{x:3.55,z:-2.6,draw:()=>drawTree(3.55,-2.6,.75)},
@@ -172,7 +185,6 @@
     ];
     const c=Math.cos(camera.yaw),s=Math.sin(camera.yaw);objects.forEach(o=>o.depth=o.x*s+o.z*c);objects.sort((a,b)=>a.depth-b.depth).forEach(o=>o.draw());
     drawSignLabels();
-    dispatchEvent(new CustomEvent('farm-camera-change',{detail:{angle:((camera.yaw*180/Math.PI)%360+360)%360}}));
     requestAnimationFrame(draw);
   }
 
@@ -180,13 +192,12 @@
   canvas.addEventListener('pointerdown',event=>{pointer.down=true;pointer.moved=false;pointer.x=pointer.startX=event.clientX;pointer.y=pointer.startY=event.clientY;lastInteraction=performance.now();canvas.setPointerCapture(event.pointerId);});
   canvas.addEventListener('pointermove',event=>{
     const rect=canvas.getBoundingClientRect();
-    if(pointer.down){const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;if(Math.hypot(event.clientX-pointer.startX,event.clientY-pointer.startY)>5)pointer.moved=true;camera.targetYaw+=dx*.009;camera.targetPitch=Math.max(.25,Math.min(.78,camera.targetPitch-dy*.0045));pointer.x=event.clientX;pointer.y=event.clientY;lastInteraction=performance.now();}
-    const spot=hotspotAt(event.clientX-rect.left,event.clientY-rect.top);pointer.hover=spot?.place||null;canvas.style.cursor=pointer.down?'grabbing':spot?'pointer':'grab';if(hint&&!pointer.down)hint.textContent=spot?`Click to open ${spot.label.toLowerCase()}.`:'Drag to rotate 360° · scroll to zoom';
+    if(pointer.down){const dx=event.clientX-pointer.x;if(Math.hypot(event.clientX-pointer.startX,event.clientY-pointer.startY)>5)pointer.moved=true;camera.targetYaw+=dx*.009;pointer.x=event.clientX;pointer.y=event.clientY;lastInteraction=performance.now();}
+    const spot=hotspotAt(event.clientX-rect.left,event.clientY-rect.top);pointer.hover=spot?.place||null;canvas.style.cursor=pointer.down?'grabbing':spot?'pointer':'grab';if(hint&&!pointer.down)hint.textContent=spot?`Click to open ${spot.label.toLowerCase()}.`:'Drag left or right to rotate 360°';
   });
   function release(event){if(!pointer.down)return;pointer.down=false;canvas.releasePointerCapture?.(event.pointerId);if(!pointer.moved){const rect=canvas.getBoundingClientRect();const spot=hotspotAt(event.clientX-rect.left,event.clientY-rect.top);if(spot)dispatchEvent(new CustomEvent('farm-place-selected',{detail:{place:spot.place}}));}}
   canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',()=>{pointer.down=false;});
-  canvas.addEventListener('wheel',event=>{event.preventDefault();camera.targetZoom=Math.max(.72,Math.min(1.35,camera.targetZoom-event.deltaY*.0008));lastInteraction=performance.now();},{passive:false});
-  addEventListener('farm-focus-place',event=>{const angles={house:.5,barn:5.7,field:2.8,mailbox:4.2};if(event.detail?.place in angles)camera.targetYaw=angles[event.detail.place];entered=true;lastInteraction=performance.now();});
+  addEventListener('farm-focus-place',event=>{const angles={house:.5,field:2.8,animals:5.35,pond:4.45};if(event.detail?.place in angles)camera.targetYaw=angles[event.detail.place];entered=true;lastInteraction=performance.now();});
   addEventListener('farm-enter',()=>{entered=true;lastInteraction=performance.now();});
   addEventListener('resize',resize);resize();requestAnimationFrame(draw);
 })();

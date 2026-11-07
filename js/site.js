@@ -1,6 +1,6 @@
 (() => {
   const current = location.pathname.split('/').pop() || 'index.html';
-  const activePage = current === 'project-learning.html' ? 'work.html' : current;
+  const activePage = current;
   const links = [
     ['index.html', 'Home'], ['lab.html', 'Field'], ['work.html', 'Barn'],
     ['about.html', 'Journal'], ['contact.html', 'Mailbox']

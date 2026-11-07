@@ -1,122 +1,32 @@
 (() => {
-  const panel = document.getElementById('place-panel');
-  const content = document.getElementById('panel-content');
-  const close = document.getElementById('panel-close');
-  const intro = document.querySelector('.world-intro');
-  const dockButtons = [...document.querySelectorAll('[data-place]')];
-  const soundButton = document.getElementById('sound-toggle');
-  const toast = document.getElementById('world-toast');
-  let soundOn = true;
-  let audioContext;
-  let toastTimer;
-
-  const fieldKey = 'matts-world-field-v1';
-  const crops = {
-    carrot: { icon: '🥕', label: 'Carrot', cost: 2, reward: 5 },
-    berry: { icon: '🍓', label: 'Berry', cost: 3, reward: 7 },
-    sunflower: { icon: '🌻', label: 'Sunflower', cost: 4, reward: 9 }
-  };
-  const freshField = () => ({ coins: 12, day: 1, selected: 'carrot', plots: Array.from({length:4},()=>({state:'empty',crop:null})) });
-  let field = loadField();
-
-  function loadField() {
-    try {
-      const value = JSON.parse(localStorage.getItem(fieldKey));
-      if (value?.plots?.length === 4) return { ...freshField(), ...value };
-    } catch (error) { console.warn('World field save could not be loaded.', error); }
-    return freshField();
-  }
-  function saveField() {
-    localStorage.setItem(fieldKey, JSON.stringify(field));
-    document.getElementById('world-coins').textContent = field.coins;
-    document.getElementById('world-day').textContent = String(field.day).padStart(2,'0');
-  }
-
-  function ding(frequency = 720, duration = .11) {
-    if (!soundOn) return;
-    audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.35, audioContext.currentTime + duration);
-    gain.gain.setValueAtTime(.0001, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.12, audioContext.currentTime + .015);
-    gain.gain.exponentialRampToValueAtTime(.0001, audioContext.currentTime + duration);
-    oscillator.connect(gain).connect(audioContext.destination); oscillator.start(); oscillator.stop(audioContext.currentTime + duration);
-  }
-
-  function notify(text) {
-    clearTimeout(toastTimer); toast.textContent = text; toast.classList.add('is-visible');
-    toastTimer = setTimeout(()=>toast.classList.remove('is-visible'), 2200);
-  }
-
-  function enterWorld() {
-    intro.classList.add('is-dismissed');
-    dispatchEvent(new CustomEvent('farm-enter'));
-    notify('Drag left or right to orbit the farm.');
-    ding(540, .14);
-  }
-
-  function openPlace(place) {
-    const template = document.getElementById(`${place}-panel`);
-    if (!template) return;
-    enterWorld();
-    content.replaceChildren(template.content.cloneNode(true));
-    panel.setAttribute('aria-hidden','false');
-    dockButtons.forEach(button => button.setAttribute('aria-current', String(button.dataset.place === place)));
-    dispatchEvent(new CustomEvent('farm-focus-place',{detail:{place}}));
-    if (place === 'field') initialiseFieldPanel();
-    content.querySelector('[data-open-field]')?.addEventListener('click',()=>openPlace('field'));
-    close.focus({preventScroll:true}); ding(650, .1);
-  }
-
-  function closePanel() {
-    panel.setAttribute('aria-hidden','true');
-    dockButtons.forEach(button => button.removeAttribute('aria-current'));
-    ding(410, .08);
-  }
-
-  function initialiseFieldPanel() {
-    const plots = document.getElementById('world-plots');
-    const instruction = document.getElementById('field-instruction');
-    const seedButtons = [...content.querySelectorAll('[data-world-seed]')];
-    function render() {
-      seedButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.worldSeed===field.selected)));
-      plots.replaceChildren();
-      field.plots.forEach((plot,index)=>{
-        const button=document.createElement('button');button.type='button';button.className='world-plot';button.dataset.state=plot.state;
-        const crop=plot.crop?crops[plot.crop]:null;
-        button.innerHTML=`${plot.state==='empty'?'＋':plot.state==='planted'?'🌱':plot.state==='watered'?'💧':crop.icon}<small>PLOT ${index+1} · ${plot.state.toUpperCase()}</small>`;
-        button.setAttribute('aria-label',`Plot ${index+1}, ${plot.state}${crop?`, ${crop.label}`:''}`);
-        button.addEventListener('click',()=>tend(index));plots.append(button);
-      });
-      saveField();
-    }
-    function tend(index) {
-      const plot=field.plots[index];
-      if(plot.state==='empty'){
-        const crop=crops[field.selected];
-        if(field.coins<crop.cost){instruction.textContent='You need more coins. Harvest a crop first.';notify('Not enough coins yet.');return;}
-        field.coins-=crop.cost;plot.crop=field.selected;plot.state='planted';instruction.textContent=`${crop.label} planted. Click again to water it.`;ding(520,.09);
-      }else if(plot.state==='planted'){plot.state='watered';instruction.textContent='Watered! Click once more to help it grow.';ding(680,.1);
-      }else if(plot.state==='watered'){plot.state='ready';instruction.textContent='Your crop is ready. Collect the harvest!';ding(820,.15);
-      }else{const crop=crops[plot.crop];field.coins+=crop.reward;field.day+=1;field.plots[index]={state:'empty',crop:null};instruction.textContent=`${crop.label} harvested! +${crop.reward} coins.`;notify(`${crop.icon} Harvest complete · +${crop.reward} coins`);ding(920,.18);}
-      render();
-    }
-    seedButtons.forEach(button=>button.addEventListener('click',()=>{field.selected=button.dataset.worldSeed;instruction.textContent=`${crops[field.selected].label} selected · costs ${crops[field.selected].cost} coins.`;render();ding(600,.08);}));
-    render();
-  }
-
-  dockButtons.forEach(button=>button.addEventListener('click',()=>openPlace(button.dataset.place)));
-  addEventListener('farm-place-selected',event=>openPlace(event.detail.place));
-  document.getElementById('world-start').addEventListener('click',enterWorld);
-  close.addEventListener('click',closePanel);
-  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&panel.getAttribute('aria-hidden')==='false')closePanel();});
-  soundButton.addEventListener('click',()=>{
-    soundOn=!soundOn;soundButton.setAttribute('aria-pressed',String(soundOn));soundButton.innerHTML=`<span>♪</span> Sound ${soundOn?'on':'off'}`;
-    if(soundOn)ding(740,.12);
-  });
-  addEventListener('farm-camera-change',event=>{document.getElementById('angle-value').textContent=`${String(Math.round(event.detail.angle)).padStart(3,'0')}°`;});
-  function updateClock(){document.getElementById('world-time').textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false});}
-  updateClock();setInterval(updateClock,30000);saveField();
+  const panel=document.getElementById('place-panel'),content=document.getElementById('panel-content'),close=document.getElementById('panel-close');
+  const intro=document.querySelector('.world-intro'),dockButtons=[...document.querySelectorAll('[data-place]')],soundButton=document.getElementById('sound-toggle'),toast=document.getElementById('world-toast');
+  let soundOn=true,audioContext,toastTimer;
+  const saveKey='matts-pocket-farm-game-v2';
+  const crops={carrot:{icon:'🥕',label:'Carrot',reward:6},berry:{icon:'🍓',label:'Berry',reward:9},sunflower:{icon:'🌻',label:'Sunflower',reward:12}};
+  const shop={carrot:{amount:3,price:3},berry:{amount:3,price:5},sunflower:{amount:3,price:7},feed:{amount:3,price:4},bait:{amount:3,price:5}};
+  const animals=[{id:'cow',icon:'🐮',name:'Moo',product:'🥛 Milk',reward:8},{id:'chicken',icon:'🐔',name:'Pip',product:'🍗 Chicken meat',reward:11}];
+  const freshGame=()=>({coins:18,day:1,selected:'carrot',inventory:{carrot:3,berry:2,sunflower:1,feed:4,bait:3},plots:Array.from({length:4},()=>({state:'empty',crop:null})),animals:Object.fromEntries(animals.map(animal=>[animal.id,{state:'hungry'}])),pond:{state:'empty'}});
+  let game=loadGame();
+  function loadGame(){try{const value=JSON.parse(localStorage.getItem(saveKey)),fresh=freshGame();if(value?.plots?.length===4&&value?.inventory&&value?.animals)return{...fresh,...value,inventory:{...fresh.inventory,...value.inventory},animals:{...fresh.animals,...value.animals},pond:value.pond||fresh.pond};}catch(error){console.warn('Farm save could not be loaded.',error);}return freshGame();}
+  function saveGame(){localStorage.setItem(saveKey,JSON.stringify(game));document.getElementById('world-coins').textContent=game.coins;document.getElementById('world-day').textContent=String(game.day).padStart(2,'0');}
+  function ding(frequency=720,duration=.11){if(!soundOn)return;audioContext||=new(window.AudioContext||window.webkitAudioContext)();const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,audioContext.currentTime);oscillator.frequency.exponentialRampToValueAtTime(frequency*1.35,audioContext.currentTime+duration);gain.gain.setValueAtTime(.0001,audioContext.currentTime);gain.gain.exponentialRampToValueAtTime(.12,audioContext.currentTime+.015);gain.gain.exponentialRampToValueAtTime(.0001,audioContext.currentTime+duration);oscillator.connect(gain).connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+duration);}
+  function notify(text){clearTimeout(toastTimer);toast.textContent=text;toast.classList.add('is-visible');toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200);}
+  function enterWorld(){intro.classList.add('is-dismissed');dispatchEvent(new CustomEvent('farm-enter'));ding(540,.14);}
+  function inventoryMarkup(){return`<span>🥕 <b>${game.inventory.carrot}</b></span><span>🍓 <b>${game.inventory.berry}</b></span><span>🌻 <b>${game.inventory.sunflower}</b></span><span>🌾 <b>${game.inventory.feed}</b></span><span>🪱 <b>${game.inventory.bait}</b></span>`;}
+  function openPlace(place){const template=document.getElementById(`${place}-panel`);if(!template)return;enterWorld();content.replaceChildren(template.content.cloneNode(true));panel.setAttribute('aria-hidden','false');dockButtons.forEach(button=>button.setAttribute('aria-current',String(button.dataset.place===place)));dispatchEvent(new CustomEvent('farm-focus-place',{detail:{place}}));if(place==='house')initialiseShop();if(place==='field')initialiseField();if(place==='animals')initialiseAnimals();if(place==='pond')initialisePond();close.focus({preventScroll:true});ding(650,.1);}
+  function closePanel(){panel.setAttribute('aria-hidden','true');dockButtons.forEach(button=>button.removeAttribute('aria-current'));ding(410,.08);}
+  function initialiseShop(){const strip=document.getElementById('inventory-strip');const render=()=>{strip.innerHTML=inventoryMarkup();saveGame();};content.querySelectorAll('[data-buy]').forEach(button=>button.addEventListener('click',()=>{const item=button.dataset.buy,offer=shop[item];if(game.coins<offer.price){notify('Not enough coins — harvest crops or animal produce.');ding(220,.12);return;}game.coins-=offer.price;game.inventory[item]+=offer.amount;render();notify(`Supplies stored · +${offer.amount}`);ding(760,.14);}));render();}
+  function initialiseField(){const plots=document.getElementById('world-plots'),instruction=document.getElementById('field-instruction'),seedButtons=[...content.querySelectorAll('[data-world-seed]')];
+    function render(){seedButtons.forEach(button=>{button.setAttribute('aria-pressed',String(button.dataset.worldSeed===game.selected));button.querySelector('[data-stock]').textContent=game.inventory[button.dataset.worldSeed];});plots.replaceChildren();game.plots.forEach((plot,index)=>{const button=document.createElement('button');button.type='button';button.className='world-plot';button.dataset.state=plot.state;const crop=plot.crop?crops[plot.crop]:null;button.innerHTML=`${plot.state==='empty'?'＋':plot.state==='planted'?'🌱':plot.state==='watered'?'💧':crop.icon}<small>PLOT ${index+1} · ${plot.state.toUpperCase()}</small>`;button.addEventListener('click',()=>tend(index));plots.append(button);});saveGame();}
+    function tend(index){const plot=game.plots[index];if(plot.state==='empty'){if(game.inventory[game.selected]<1){instruction.textContent='No seeds left. Visit the supply house.';notify('Seed bag empty — open the house.');ding(220,.12);return;}game.inventory[game.selected]-=1;plot.crop=game.selected;plot.state='planted';instruction.textContent=`${crops[game.selected].label} planted. Click again to water.`;ding(520,.09);}else if(plot.state==='planted'){plot.state='watered';instruction.textContent='Watered! Click once more to grow it.';ding(680,.1);}else if(plot.state==='watered'){plot.state='ready';instruction.textContent='Ready to harvest!';ding(820,.15);}else{const crop=crops[plot.crop];game.coins+=crop.reward;game.day+=1;game.plots[index]={state:'empty',crop:null};instruction.textContent=`${crop.label} sold · +${crop.reward} coins.`;notify(`${crop.icon} Harvest sold · +${crop.reward}`);ding(920,.18);}render();}
+    seedButtons.forEach(button=>button.addEventListener('click',()=>{game.selected=button.dataset.worldSeed;instruction.textContent=`${crops[game.selected].label} selected · ${game.inventory[game.selected]} seeds in stock.`;render();ding(600,.08);}));render();}
+  function initialiseAnimals(){const cards=document.getElementById('animal-cards'),instruction=document.getElementById('animal-instruction'),inventory=document.getElementById('animal-inventory');
+    function render(){inventory.innerHTML=inventoryMarkup();cards.replaceChildren();animals.forEach(animal=>{const state=game.animals[animal.id],button=document.createElement('button');button.type='button';button.className='animal-card';button.dataset.state=state.state;const action=state.state==='hungry'?'Feed 1 🌾':state.state==='happy'?'Give some care':'Collect produce';button.innerHTML=`<span class="animal-face">${animal.icon}</span><span><b>${animal.name}</b><small>${animal.product}</small></span><i>${action}</i><div class="care-meter"><u style="width:${state.state==='hungry'?10:state.state==='happy'?58:100}%"></u></div>`;button.addEventListener('click',()=>tendAnimal(animal));cards.append(button);});saveGame();}
+    function tendAnimal(animal){const state=game.animals[animal.id];if(state.state==='hungry'){if(game.inventory.feed<1){instruction.textContent='The feed bin is empty. Buy more in the supply house.';notify('No animal feed left.');ding(220,.12);return;}game.inventory.feed-=1;state.state='happy';instruction.textContent=`${animal.name} is eating. Give one more click of care.`;ding(560,.1);}else if(state.state==='happy'){state.state='ready';instruction.textContent=animal.id==='cow'?'Moo is ready to be milked!':'Pip is fully raised and ready for market.';ding(800,.15);}else{game.coins+=animal.reward;game.day+=1;state.state='hungry';instruction.textContent=`Sold ${animal.product} · +${animal.reward} coins.`;notify(`${animal.product} sold · +${animal.reward}`);ding(960,.2);}render();}render();}
+  function initialisePond(){const button=document.getElementById('pond-game'),instruction=document.getElementById('pond-instruction'),inventory=document.getElementById('pond-inventory');
+    function render(){inventory.innerHTML=inventoryMarkup();const state=game.pond.state;button.dataset.state=state;button.querySelector('b').textContent=state==='empty'?'Empty pond':state==='growing'?'Fish are growing':'Fish ready for market';button.querySelector('small').textContent=state==='empty'?'Click to add 1 bait':state==='growing'?'Click to tend the water':'Click to sell fish meat · +12';button.querySelector('.pond-fish').textContent=state==='empty'?'💧':state==='growing'?'🐟':'🍣';saveGame();}
+    button.addEventListener('click',()=>{if(game.pond.state==='empty'){if(game.inventory.bait<1){instruction.textContent='No bait left. Buy more in the supply house.';notify('Bait box empty.');ding(220,.12);return;}game.inventory.bait-=1;game.pond.state='growing';instruction.textContent='The fish are feeding. Tend the water once more.';ding(560,.1);}else if(game.pond.state==='growing'){game.pond.state='ready';instruction.textContent='The fish are fully grown and ready for market.';ding(800,.15);}else{game.coins+=12;game.day+=1;game.pond.state='empty';instruction.textContent='Fish meat sold · +12 coins. Stock the pond again.';notify('🍣 Fish meat sold · +12');ding(960,.2);}render();});render();}
+  dockButtons.forEach(button=>button.addEventListener('click',()=>openPlace(button.dataset.place)));addEventListener('farm-place-selected',event=>openPlace(event.detail.place));document.getElementById('world-start').addEventListener('click',()=>{enterWorld();notify('Drag to orbit · open the house for supplies.');});close.addEventListener('click',closePanel);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&panel.getAttribute('aria-hidden')==='false')closePanel();});soundButton.addEventListener('click',()=>{soundOn=!soundOn;soundButton.setAttribute('aria-pressed',String(soundOn));soundButton.innerHTML=`<span>♪</span> Sound ${soundOn?'on':'off'}`;if(soundOn)ding(740,.12);});
+  function updateClock(){document.getElementById('world-time').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});}updateClock();setInterval(updateClock,30000);saveGame();
 })();

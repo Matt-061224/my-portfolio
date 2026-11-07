@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Matt's Pocket Farm is an interactive 360-degree personal website where ideas grow into playful web projects.">
-  <title>Matt's Pocket Farm — Interactive 360° World</title>
+  <meta name="description" content="Matt's Pocket Farm is an independent 360-degree farming game with crops, animals and a cosy supply house.">
+  <title>Matt's Pocket Farm — 360° Farming Game</title>
   <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <meta property="og:title" content="Matt's Pocket Farm">
-  <meta property="og:description" content="Drag to explore a tiny 3D world. Click the farmhouse, barn, field and mailbox.">
+  <meta property="og:description" content="Rotate a tiny 3D world, grow crops, care for animals and build your pocket farm.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://matt-061224.github.io/my-portfolio/">
   <meta property="og:image" content="https://matt-061224.github.io/my-portfolio/submission/cover.jpg">
@@ -32,25 +32,24 @@
     </header>
 
     <section class="world-intro" aria-labelledby="world-title">
-      <p class="kicker"><span></span> MATT'S DIGITAL HOMESTEAD</p>
-      <h1 id="world-title">Plant an idea.<br><em>Grow something.</em></h1>
-      <p>A personal world built from code. Drag anywhere to orbit 360°, then click a place to explore.</p>
+      <p class="kicker"><span></span> MATT'S POCKET FARM</p>
+      <h1 id="world-title">Sow. Feed.<br><em>Build your farm.</em></h1>
+      <p>An independent farming game built from code. Orbit the island, raise animals and grow a thriving homestead.</p>
       <button class="world-start" id="world-start" type="button">Enter the farm <span>↓</span></button>
     </section>
 
     <aside class="camera-help" aria-label="Camera controls">
       <span class="orbit-icon" aria-hidden="true">↻</span>
-      <p><b>DRAG</b> to rotate 360°<br><b>SCROLL</b> to zoom</p>
-      <div class="angle-readout"><span id="angle-value">000°</span><small>CAMERA ANGLE</small></div>
+      <p><b>DRAG LEFT OR RIGHT</b><br>to rotate the farm 360°</p>
     </aside>
 
     <div class="hover-label" id="scene-hint" aria-live="polite">Drag the world or select a place below.</div>
 
     <nav class="world-dock" id="world-dock" aria-label="Explore farm places">
-      <button type="button" data-place="house"><span class="dock-icon house-icon" aria-hidden="true"></span><b>Farmhouse</b><small>Meet Matt</small></button>
-      <button type="button" data-place="barn"><span class="dock-icon barn-icon" aria-hidden="true"></span><b>Project barn</b><small>See the harvest</small></button>
+      <button type="button" data-place="house"><span class="dock-icon house-icon" aria-hidden="true"></span><b>Supply house</b><small>Seeds & feed</small></button>
       <button type="button" data-place="field"><span class="dock-icon field-icon" aria-hidden="true"></span><b>Crop field</b><small>Plant & play</small></button>
-      <button type="button" data-place="mailbox"><span class="dock-icon mail-icon" aria-hidden="true"></span><b>Mailbox</b><small>Say hello</small></button>
+      <button type="button" data-place="animals"><span class="dock-icon animal-icon" aria-hidden="true">🐮</span><b>Animal meadow</b><small>Feed & collect</small></button>
+      <button type="button" data-place="pond"><span class="dock-icon pond-icon" aria-hidden="true">🐟</span><b>Fish pond</b><small>Raise & sell</small></button>
     </nav>
 
     <div class="world-resource"><span>DAY <b id="world-day">01</b></span><span>☀ SUNNY</span><span>◎ <b id="world-coins">12</b></span></div>
@@ -65,53 +64,55 @@
 
   <template id="house-panel">
     <article class="panel-article panel-house">
-      <p class="panel-kicker">01 / THE FARMHOUSE</p>
-      <h2>The person<br>behind the pixels.</h2>
-      <p>I'm Matt, a frontend learner who enjoys turning small ideas into interactive places. I built this farm with semantic HTML, responsive CSS, JavaScript and a code-drawn 3D world.</p>
-      <blockquote>“Start small, notice the details, and keep growing.”</blockquote>
-      <div class="skill-row"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span></div>
-      <a class="panel-link" href="about.html">Open the full farmer's journal ↗</a>
-    </article>
-  </template>
-
-  <template id="barn-panel">
-    <article class="panel-article panel-barn">
-      <p class="panel-kicker">02 / THE PROJECT BARN</p>
-      <h2>Fresh from<br>the harvest.</h2>
-      <div class="panel-projects">
-        <a href="project-learning.html"><span>LIVE WEBSITE</span><b>Learning, taking flight.</b><small>HTML · CSS · JavaScript</small><i>↗</i></a>
-        <button type="button" data-open-field><span>INTERACTIVE</span><b>The Pocket Farm</b><small>State · Storage · Feedback</small><i>→</i></button>
-        <a href="https://github.com/Matt-061224" target="_blank" rel="noopener noreferrer"><span>SOURCE CODE</span><b>More in the code shed</b><small>GitHub · Commit history</small><i>↗</i></a>
+      <p class="panel-kicker">01 / MATT'S SUPPLY HOUSE</p>
+      <h2>Stock the farm.</h2>
+      <p>Spend harvest coins on seeds and animal feed. Your supplies stay safely stored in this house.</p>
+      <div class="inventory-strip" id="inventory-strip" aria-label="Farm inventory"></div>
+      <div class="shop-grid" aria-label="Supply shop">
+        <button type="button" data-buy="carrot"><span>🥕</span><b>Carrot seeds ×3</b><small>3 coins</small></button>
+        <button type="button" data-buy="berry"><span>🍓</span><b>Berry seeds ×3</b><small>5 coins</small></button>
+        <button type="button" data-buy="sunflower"><span>🌻</span><b>Flower seeds ×3</b><small>7 coins</small></button>
+        <button type="button" data-buy="feed"><span>🌾</span><b>Animal feed ×3</b><small>4 coins</small></button>
+        <button type="button" data-buy="bait"><span>🪱</span><b>Fish bait ×3</b><small>5 coins</small></button>
       </div>
-      <a class="panel-link" href="work.html">Open the complete project barn ↗</a>
     </article>
   </template>
 
   <template id="field-panel">
     <article class="panel-article panel-field">
-      <p class="panel-kicker">03 / THE CROP FIELD</p>
+      <p class="panel-kicker">02 / THE CROP FIELD</p>
       <h2>Plant. Water.<br>Harvest.</h2>
       <p class="field-instruction" id="field-instruction">Choose a seed, then plant an empty plot.</p>
       <div class="world-seeds" role="group" aria-label="Choose a crop">
-        <button type="button" data-world-seed="carrot" aria-pressed="true">🥕 <span>Carrot · 2</span></button>
-        <button type="button" data-world-seed="berry" aria-pressed="false">🍓 <span>Berry · 3</span></button>
-        <button type="button" data-world-seed="sunflower" aria-pressed="false">🌻 <span>Sunflower · 4</span></button>
+        <button type="button" data-world-seed="carrot" aria-pressed="true">🥕 <span>Carrot · <b data-stock="carrot">0</b></span></button>
+        <button type="button" data-world-seed="berry" aria-pressed="false">🍓 <span>Berry · <b data-stock="berry">0</b></span></button>
+        <button type="button" data-world-seed="sunflower" aria-pressed="false">🌻 <span>Flower · <b data-stock="sunflower">0</b></span></button>
       </div>
       <div class="world-plots" id="world-plots" aria-label="Four interactive crop plots"></div>
-      <a class="panel-link" href="lab.html">Open the full six-plot farm game ↗</a>
     </article>
   </template>
 
-  <template id="mailbox-panel">
-    <article class="panel-article panel-mail">
-      <p class="panel-kicker">04 / THE MAILBOX</p>
-      <h2>Send a note<br>over the fence.</h2>
-      <p>Thanks for walking through my farm. You can inspect the code or visit the learning website that started this journey.</p>
-      <div class="mail-links">
-        <a href="https://github.com/Matt-061224" target="_blank" rel="noopener noreferrer"><span>GitHub</span><b>Visit the code shed ↗</b></a>
-        <a href="https://matt-061224.github.io/my-site/" target="_blank" rel="noopener noreferrer"><span>Learning site</span><b>See my first harvest ↗</b></a>
-      </div>
-      <a class="panel-link" href="contact.html">Open the farm mailbox ↗</a>
+  <template id="animals-panel">
+    <article class="panel-article panel-animals">
+      <p class="panel-kicker">03 / THE ANIMAL MEADOW</p>
+      <h2>Care for the herd.</h2>
+      <p class="field-instruction" id="animal-instruction">Feed an animal, wait for its happy meter, then collect produce.</p>
+      <div class="inventory-strip compact" id="animal-inventory"></div>
+      <div class="animal-cards" id="animal-cards" aria-label="Farm animals"></div>
+      <div class="animal-guide"><span>🌾 Feed</span><i>→</i><span>💛 Raise</span><i>→</i><span>💰 Sell</span></div>
+      <div class="game-credit">Designed and built by <b>Matt</b> · progress saves on this device</div>
+    </article>
+  </template>
+
+  <template id="pond-panel">
+    <article class="panel-article panel-pond">
+      <p class="panel-kicker">04 / THE FISH POND</p>
+      <h2>Stock the pond.</h2>
+      <p class="field-instruction" id="pond-instruction">Use bait to raise fish, then sell the fish meat at market.</p>
+      <div class="inventory-strip compact" id="pond-inventory"></div>
+      <button type="button" class="pond-game" id="pond-game"><span class="pond-fish">🐟</span><b>Empty pond</b><small>Click to add bait</small><i class="pond-water"></i></button>
+      <div class="animal-guide"><span>🪱 Bait</span><i>→</i><span>🐟 Grow</span><i>→</i><span>🍣 Fish meat</span><i>→</i><span>💰 12</span></div>
+      <div class="game-credit">Matt's independent pocket-farm economy</div>
     </article>
   </template>
 </body>
