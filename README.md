@@ -9,6 +9,7 @@ An independent single-player browser game presented as a small interactive 3D fa
 - Clickable 3D locations open content without leaving the main world
 - Compact planting game inside the world, plus a full six-plot version
 - A connected economy: buy seeds, feed and bait; grow crops; milk cows; raise chickens; sell fish meat
+- Real-time crop growth that continues while the page is closed, with watering as a one-time speed boost
 - Local progress saving, audio feedback and keyboard-accessible controls
 - Responsive layouts for desktop and mobile
 

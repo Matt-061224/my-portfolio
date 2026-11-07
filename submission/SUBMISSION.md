@@ -19,7 +19,7 @@ The game is for casual players who enjoy short farming and management loops. The
 
 I built the complete scene with semantic HTML, responsive CSS, plain JavaScript and the Canvas API. The buildings, landscape, crops and camera system are generated with code rather than downloaded 3D models. Dragging changes the camera angle, scrolling changes the zoom, and clicking places opens interactive panels without leaving the main world.
 
-The farm game uses state changes, immediate visual feedback and browser storage. Players spend coins, care for crops and animals, collect products, sell them and reinvest the income. The site also includes optional sound and responsive desktop and mobile layouts.
+The farm game uses state changes, real-time growth, immediate visual feedback and browser storage. Crops continue maturing while the page is closed, and watering gives a one-time speed boost. Players spend coins, care for crops and animals, collect products, sell them and reinvest the income. The site also includes optional sound and responsive desktop and mobile layouts.
 
 ## Five upload images
 
