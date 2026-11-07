@@ -1,21 +1,32 @@
-# Matt / Personal Portfolio
+# Matt's Pocket Farm
 
-GitHub: https://github.com/Matt-061224/my-portfolio
-Live: https://matt-061224.github.io/my-portfolio/
+GitHub repository: https://github.com/Matt-061224/my-portfolio
+Live website: https://matt-061224.github.io/my-portfolio/
 
-Title: Matt Personal Portfolio
-Short description: A personal frontend portfolio featuring selected work, a project case study, and two interactive browser tools.
+## Title
 
-Long description draft (review and personalise before submitting):
+Matt's Pocket Farm
 
-This portfolio presents my frontend learning through a small collection of projects. Visitors can explore the homepage, work collection, about page, contact links, and a case study of the learning website.
+## Short description
 
-The portfolio is designed for people interested in my work and progress. Its visual direction combines a warm neutral background, clear typography, and restrained orange accents.
+An interactive 3D personal farm where visitors explore projects, plant crops and meet the maker.
 
-The site is built with semantic HTML, responsive CSS, and plain JavaScript. It includes category filters, a focus timer with pause and reset, and a palette generator with copyable colour values.
+## Long description
 
-Navigation and the footer are shared through JavaScript. The portfolio has its own repository and public address, separate from the first project. The interface illustrations are made in CSS and the case-study screenshot comes from the learning website.
+Matt's Pocket Farm is my personal website presented as a small digital world. Instead of browsing a traditional portfolio, visitors can drag the farm through a 360-degree view and select the farmhouse, project barn, crop field or mailbox.
 
-Five upload files: cover.jpg (1200×630, <100KB), desktop.png (1920×1080), mobile.png (375×812), apple-touch-icon.png (180×180), favicon-32.png (32×32).
+The site is for anyone interested in my frontend learning and the projects I have built. The farmhouse introduces me, the barn presents selected work, the field contains a planting game, and the mailbox connects to my GitHub account and first learning website.
 
-Before hand-in: review AI-assisted text in your own voice; aircraft photo in Project 1 is the author’s own photograph (confirmed 2026-11-04); test both URLs using campus Wi-Fi and mobile data. Preserve genuine Git dates; no week-by-week history has been fabricated. Course dashboard submission has not been performed.
+I built the complete scene with semantic HTML, responsive CSS, plain JavaScript and the Canvas API. The buildings, landscape, crops and camera system are generated with code rather than downloaded 3D models. Dragging changes the camera angle, scrolling changes the zoom, and clicking places opens interactive panels without leaving the main world.
+
+The farm game uses state changes, immediate visual feedback and browser storage. Visitors choose a seed, plant, water and harvest crops to earn coins. The site also includes accessible keyboard controls, optional sound, mobile layouts and deeper pages for the full project stories.
+
+## Five upload images
+
+1. `cover.jpg` — 1200 × 630, under 100 KB
+2. `desktop.png` — 1920 × 1080
+3. `mobile.png` — 375 × 812
+4. `apple-touch-icon.png` — 180 × 180
+5. `favicon-32.png` — 32 × 32
+
+The 3D farm artwork is original and generated from code within this project. Review the description in your own voice before final submission, and test the live URL on both Wi-Fi and mobile data.

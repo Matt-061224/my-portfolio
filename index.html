@@ -1,8 +1,118 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Matt's personal portfolio. A growing collection of frontend experiments and thoughtful digital work."><title>Home — Matt / Portfolio</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="css/style.css"><script src="js/site.js" defer></script><link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta property="og:title" content="Matt / Personal Portfolio"><meta property="og:description" content="CURIOSITY. MADE VISIBLE."><meta property="og:type" content="website"><meta property="og:url" content="https://matt-061224.github.io/my-portfolio/"><meta property="og:image" content="https://matt-061224.github.io/my-portfolio/submission/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"></head><body><a class="skip" href="#main">Skip to content</a><header id="header"></header><main id="main">
-<section class="hero wrap"><div class="hero-copy"><p class="eyebrow"><span class="dot"></span> MATT / PERSONAL PORTFOLIO</p><h1>Curiosity.<br>Made <span class="serif">visible.</span></h1><p class="lead">Learning the web by building things.<br>A growing collection of ideas, experiments,<br class="desktop"> and the details in between.</p><div class="hero-actions"><a class="button" href="work.html">Explore my work <span>↗</span></a><a class="quiet-link" href="about.html">A little about me →</a></div></div><div class="hero-art" aria-label="Illustration of an interface taking shape"><div class="art-label">AN IDEA, TAKING SHAPE</div><div class="orb"></div><div class="wireframe"><div class="mock-toolbar"><i></i><i></i><i></i><span>hello, world.</span></div><div class="mock-content"><span class="mock-kicker">BUILD. REFINE. REPEAT.</span><div class="mock-title">Something<br>starts here<span>↗</span></div><div class="mock-line"></div><div class="mock-line short"></div><div class="mock-button"></div></div></div><span class="art-coordinate">01 — A WORK IN PROGRESS</span><span class="floating-note">a little better,<br><em>every iteration.</em></span></div></section>
-<div class="intro-strip wrap"><span>THINK IT THROUGH.</span><span>BUILD WITH CARE.</span><span>KEEP EXPLORING. <b>↗</b></span></div>
-<section class="wrap selected"><div class="section-title"><div><p class="eyebrow">01 / SELECTED WORK</p><h2>From learning<br>to <span class="serif">making.</span></h2></div><a class="quiet-link" href="work.html">View all work ↗</a></div><a class="featured-project" href="project-learning.html"><div class="project-visual"><div class="mini-browser"><div class="mini-nav">learning. <span>Home &nbsp; Projects &nbsp; Quotes</span></div><div class="mini-hero"><small>A FRONTEND LEARNING JOURNEY</small><strong>Learning,<br>taking flight.</strong><span>Small experiments. New perspectives.</span><b>Explore the projects ↗</b></div></div><span class="visual-tag">LIVE WEBSITE ↗</span></div><div class="project-description"><span class="eyebrow">01 / FRONTEND DEVELOPMENT</span><h3>The learning website.</h3><p>Four pages. Three interactive experiments.<br>One place to put new ideas into practice.</p><div class="tags"><span>HTML</span><span>CSS</span><span>JavaScript</span></div><span class="project-arrow">Explore the project ↗</span></div></a></section>
-<section class="wrap about-preview"><p class="eyebrow">02 / THE APPROACH</p><div><h2>Start small.<br>Notice the details.<br><span class="serif">Make it better.</span></h2><p>I’m Matt. This is a space to document what I’m building and what I’m learning along the way.</p><a class="quiet-link" href="about.html">More about the process ↗</a></div></section>
-<section class="wrap contact-banner"><p class="eyebrow">03 / NEXT CONVERSATION</p><h2>Every good idea<br>starts with <span class="serif">hello.</span></h2><a class="button" href="contact.html">Find me online ↗</a></section>
-</main><footer id="footer"></footer></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Matt's Pocket Farm is an interactive 360-degree personal website where ideas grow into playful web projects.">
+  <title>Matt's Pocket Farm — Interactive 360° World</title>
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <meta property="og:title" content="Matt's Pocket Farm">
+  <meta property="og:description" content="Drag to explore a tiny 3D world. Click the farmhouse, barn, field and mailbox.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://matt-061224.github.io/my-portfolio/">
+  <meta property="og:image" content="https://matt-061224.github.io/my-portfolio/submission/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="js/farm-scene.js" defer></script>
+  <script src="js/world.js" defer></script>
+</head>
+<body class="farm-world-page">
+  <a class="skip-link" href="#world-dock">Skip to farm places</a>
+  <main class="world" id="main">
+    <canvas id="farm-canvas" width="1600" height="1000" aria-label="A rotatable 3D farm. Drag to look around and click buildings to interact."></canvas>
+
+    <header class="world-header">
+      <a class="world-brand" href="index.html" aria-label="Matt's Pocket Farm home">
+        <span class="brand-mark" aria-hidden="true"><i></i></span>
+        <span><b>Matt's</b><small>Pocket Farm</small></span>
+      </a>
+      <div class="world-status"><i></i><span>FARM ONLINE</span><b id="world-time">08:24</b></div>
+      <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true"><span>♪</span> Sound on</button>
+    </header>
+
+    <section class="world-intro" aria-labelledby="world-title">
+      <p class="kicker"><span></span> MATT'S DIGITAL HOMESTEAD</p>
+      <h1 id="world-title">Plant an idea.<br><em>Grow something.</em></h1>
+      <p>A personal world built from code. Drag anywhere to orbit 360°, then click a place to explore.</p>
+      <button class="world-start" id="world-start" type="button">Enter the farm <span>↓</span></button>
+    </section>
+
+    <aside class="camera-help" aria-label="Camera controls">
+      <span class="orbit-icon" aria-hidden="true">↻</span>
+      <p><b>DRAG</b> to rotate 360°<br><b>SCROLL</b> to zoom</p>
+      <div class="angle-readout"><span id="angle-value">000°</span><small>CAMERA ANGLE</small></div>
+    </aside>
+
+    <div class="hover-label" id="scene-hint" aria-live="polite">Drag the world or select a place below.</div>
+
+    <nav class="world-dock" id="world-dock" aria-label="Explore farm places">
+      <button type="button" data-place="house"><span class="dock-icon house-icon" aria-hidden="true"></span><b>Farmhouse</b><small>Meet Matt</small></button>
+      <button type="button" data-place="barn"><span class="dock-icon barn-icon" aria-hidden="true"></span><b>Project barn</b><small>See the harvest</small></button>
+      <button type="button" data-place="field"><span class="dock-icon field-icon" aria-hidden="true"></span><b>Crop field</b><small>Plant & play</small></button>
+      <button type="button" data-place="mailbox"><span class="dock-icon mail-icon" aria-hidden="true"></span><b>Mailbox</b><small>Say hello</small></button>
+    </nav>
+
+    <div class="world-resource"><span>DAY <b id="world-day">01</b></span><span>☀ SUNNY</span><span>◎ <b id="world-coins">12</b></span></div>
+
+    <section class="place-panel" id="place-panel" aria-live="polite" aria-hidden="true">
+      <button class="panel-close" id="panel-close" type="button" aria-label="Close panel">×</button>
+      <div id="panel-content"></div>
+    </section>
+
+    <div class="world-toast" id="world-toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <template id="house-panel">
+    <article class="panel-article panel-house">
+      <p class="panel-kicker">01 / THE FARMHOUSE</p>
+      <h2>The person<br>behind the pixels.</h2>
+      <p>I'm Matt, a frontend learner who enjoys turning small ideas into interactive places. I built this farm with semantic HTML, responsive CSS, JavaScript and a code-drawn 3D world.</p>
+      <blockquote>“Start small, notice the details, and keep growing.”</blockquote>
+      <div class="skill-row"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Canvas</span></div>
+      <a class="panel-link" href="about.html">Open the full farmer's journal ↗</a>
+    </article>
+  </template>
+
+  <template id="barn-panel">
+    <article class="panel-article panel-barn">
+      <p class="panel-kicker">02 / THE PROJECT BARN</p>
+      <h2>Fresh from<br>the harvest.</h2>
+      <div class="panel-projects">
+        <a href="project-learning.html"><span>LIVE WEBSITE</span><b>Learning, taking flight.</b><small>HTML · CSS · JavaScript</small><i>↗</i></a>
+        <button type="button" data-open-field><span>INTERACTIVE</span><b>The Pocket Farm</b><small>State · Storage · Feedback</small><i>→</i></button>
+        <a href="https://github.com/Matt-061224" target="_blank" rel="noopener noreferrer"><span>SOURCE CODE</span><b>More in the code shed</b><small>GitHub · Commit history</small><i>↗</i></a>
+      </div>
+      <a class="panel-link" href="work.html">Open the complete project barn ↗</a>
+    </article>
+  </template>
+
+  <template id="field-panel">
+    <article class="panel-article panel-field">
+      <p class="panel-kicker">03 / THE CROP FIELD</p>
+      <h2>Plant. Water.<br>Harvest.</h2>
+      <p class="field-instruction" id="field-instruction">Choose a seed, then plant an empty plot.</p>
+      <div class="world-seeds" role="group" aria-label="Choose a crop">
+        <button type="button" data-world-seed="carrot" aria-pressed="true">🥕 <span>Carrot · 2</span></button>
+        <button type="button" data-world-seed="berry" aria-pressed="false">🍓 <span>Berry · 3</span></button>
+        <button type="button" data-world-seed="sunflower" aria-pressed="false">🌻 <span>Sunflower · 4</span></button>
+      </div>
+      <div class="world-plots" id="world-plots" aria-label="Four interactive crop plots"></div>
+      <a class="panel-link" href="lab.html">Open the full six-plot farm game ↗</a>
+    </article>
+  </template>
+
+  <template id="mailbox-panel">
+    <article class="panel-article panel-mail">
+      <p class="panel-kicker">04 / THE MAILBOX</p>
+      <h2>Send a note<br>over the fence.</h2>
+      <p>Thanks for walking through my farm. You can inspect the code or visit the learning website that started this journey.</p>
+      <div class="mail-links">
+        <a href="https://github.com/Matt-061224" target="_blank" rel="noopener noreferrer"><span>GitHub</span><b>Visit the code shed ↗</b></a>
+        <a href="https://matt-061224.github.io/my-site/" target="_blank" rel="noopener noreferrer"><span>Learning site</span><b>See my first harvest ↗</b></a>
+      </div>
+      <a class="panel-link" href="contact.html">Open the farm mailbox ↗</a>
+    </article>
+  </template>
+</body>
+</html>

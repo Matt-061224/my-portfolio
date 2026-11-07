@@ -1,14 +1,79 @@
 (() => {
- const $ = id => document.getElementById(id);
- let duration=25*60, remaining=duration, deadline=0, running=false, interval=null;
- function render(){const m=Math.floor(remaining/60),s=remaining%60;$('timer-face').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;document.title=`${running?'▶ ':''}${$('timer-face').textContent} — Focus / Matt`;}
- function tick(){if(running){remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));if(!remaining){running=false;clearInterval(interval);$('timer-toggle').textContent='Start again ↗';$('timer-status').textContent='Session complete. Take a breath. You earned it.';}}render();}
- function stop(){clearInterval(interval);running=false;$('timer-toggle').textContent='Start session ↗';}
- $('timer-toggle').addEventListener('click',()=>{if(running){tick();stop();$('timer-toggle').textContent='Resume session ↗';$('timer-status').textContent='Paused. Come back when you are ready.';}else{if(!remaining)remaining=duration;deadline=Date.now()+remaining*1000;running=true;interval=setInterval(tick,200);$('timer-toggle').textContent='Pause session';$('timer-status').textContent='One task. A little room to think.';}render();});
- $('timer-reset').addEventListener('click',()=>{stop();remaining=duration;render();$('timer-status').textContent='A fresh start. Ready when you are.';});
- document.querySelectorAll('[data-minutes]').forEach(button=>button.addEventListener('click',()=>{stop();duration=Number(button.dataset.minutes)*60;remaining=duration;document.querySelectorAll('[data-minutes]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();$('timer-status').textContent='Session changed. Ready when you are.';}));
- document.addEventListener('visibilitychange',tick);window.addEventListener('pagehide',()=>clearInterval(interval));
- const palettes=[['#53634F','#ABB79A','#E9D8BC','#BF623D'],['#293D4A','#7F9DAD','#E4E7DE','#D0AA74'],['#524456','#A994A8','#F1E8DC','#B96C55'],['#354B44','#83A293','#E9E3CC','#D79B5B'],['#3F4E65','#9AA7C0','#EEE8E0','#C77B75'],['#584D3D','#ADA085','#E9E2D3','#87977B']];let last=-1;
- function generate(){let i;do{i=Math.floor(Math.random()*palettes.length)}while(i===last);last=i;$('palette').replaceChildren();palettes[i].forEach(hex=>{const button=document.createElement('button');button.style.backgroundColor=hex;button.setAttribute('aria-label',`Copy ${hex}`);const label=document.createElement('span');label.textContent=hex;button.append(label);button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(hex);$('palette-status').textContent=`Copied ${hex}. Ready for your next idea.`;}catch{$('palette-status').textContent=`Select and copy this colour: ${hex}`;}});$('palette').append(button);});$('palette-status').textContent='Select a colour to copy its hex code.';}
- $('palette-generate').addEventListener('click',generate);generate();
+  const storageKey = 'matts-pocket-farm-v1';
+  const crops = {
+    carrot: { label: 'Carrot', cost: 2, reward: 5, emoji: '🥕' },
+    berry: { label: 'Berry', cost: 3, reward: 7, emoji: '🍓' },
+    sunflower: { label: 'Sunflower', cost: 4, reward: 9, emoji: '🌻' }
+  };
+  const weathers = ['Sunny', 'Breezy', 'Cloudy', 'Golden'];
+  const freshState = () => ({ coins: 12, harvested: 0, day: 1, weather: 'Sunny', selected: 'carrot', plots: Array.from({ length: 6 }, () => ({ state: 'empty', crop: null })) });
+  let farm = load();
+  let resetArmed = false;
+  const grid = document.getElementById('plot-grid');
+  const message = document.getElementById('game-message');
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey));
+      if (saved && Array.isArray(saved.plots) && saved.plots.length === 6) return { ...freshState(), ...saved };
+    } catch (error) { console.warn('Saved farm could not be read.', error); }
+    return freshState();
+  }
+  function save() { localStorage.setItem(storageKey, JSON.stringify(farm)); }
+  function speak(icon, title, detail) { message.innerHTML = `<span aria-hidden="true">${icon}</span><p><b>${title}</b><br>${detail}</p>`; }
+  function render() {
+    document.getElementById('coin-count').textContent = farm.coins;
+    document.getElementById('harvest-count').textContent = farm.harvested;
+    document.getElementById('farm-day').textContent = farm.day;
+    document.getElementById('weather-label').textContent = farm.weather;
+    document.querySelectorAll('[data-seed]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.seed === farm.selected)));
+    grid.replaceChildren();
+    farm.plots.forEach((plot, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'plot';
+      button.dataset.state = plot.state;
+      const crop = plot.crop ? crops[plot.crop] : null;
+      const action = plot.state === 'empty' ? `Plant ${crops[farm.selected].label}` : plot.state === 'planted' ? 'Water crop' : plot.state === 'watered' ? 'Help crop grow' : 'Harvest crop';
+      button.setAttribute('aria-label', `Plot ${index + 1}. ${plot.state === 'empty' ? 'Empty.' : `${crop.label}, ${plot.state}.`} ${action}.`);
+      const plantClass = plot.state === 'planted' ? 'seed' : plot.state === 'watered' ? 'sprout' : `ready ${plot.crop}`;
+      button.innerHTML = `<span class="plot-number">PLOT ${String(index + 1).padStart(2, '0')}</span>${plot.state !== 'empty' ? `<span class="crop-plant ${plantClass}" aria-hidden="true"></span><span class="crop-name">${plot.state === 'ready' ? `${crop.emoji} READY` : plot.state.toUpperCase()}</span>` : ''}`;
+      button.addEventListener('click', () => tend(index));
+      grid.append(button);
+    });
+    save();
+  }
+  function tend(index) {
+    const plot = farm.plots[index];
+    if (plot.state === 'empty') {
+      const crop = crops[farm.selected];
+      if (farm.coins < crop.cost) { speak('🪙', 'Not enough coins yet.', 'Harvest another crop or choose a cheaper seed.'); return; }
+      farm.coins -= crop.cost; plot.crop = farm.selected; plot.state = 'planted';
+      speak('🌱', `${crop.label} planted in plot ${index + 1}.`, 'Click this plot again to give it some water.');
+    } else if (plot.state === 'planted') {
+      plot.state = 'watered'; speak('💧', `Plot ${index + 1} is watered.`, 'One more visit will help the crop finish growing.');
+    } else if (plot.state === 'watered') {
+      plot.state = 'ready'; speak('✨', `${crops[plot.crop].label} is ready!`, 'Click the glowing plot to collect your harvest.');
+    } else {
+      const crop = crops[plot.crop];
+      farm.coins += crop.reward; farm.harvested += 1; farm.day = Math.floor(farm.harvested / 3) + 1; farm.weather = weathers[farm.harvested % weathers.length];
+      farm.plots[index] = { state: 'empty', crop: null };
+      speak(crop.emoji, `${crop.label} harvested! +${crop.reward} coins.`, 'The plot is ready for another seed.');
+    }
+    resetArmed = false; render();
+  }
+
+  document.querySelectorAll('[data-seed]').forEach(button => button.addEventListener('click', () => {
+    farm.selected = button.dataset.seed; resetArmed = false;
+    speak(crops[farm.selected].emoji, `${crops[farm.selected].label} selected.`, `Planting costs ${crops[farm.selected].cost} coins.`); render();
+  }));
+  document.getElementById('reset-farm').addEventListener('click', event => {
+    if (!resetArmed) {
+      resetArmed = true; event.currentTarget.textContent = 'Click again to confirm reset';
+      speak('⚠️', 'Reset the whole farm?', 'Click the reset button once more to start fresh.'); return;
+    }
+    farm = freshState(); resetArmed = false; event.currentTarget.textContent = 'Start a fresh farm ↻';
+    speak('🌱', 'Fresh soil, fresh start.', 'Choose a seed and plant your first crop.'); render();
+  });
+  render();
 })();
