@@ -31,9 +31,9 @@
   function cameraValues() {
     const mobile = view.width < 680;
     view.cx = view.width * (mobile || entered ? .5 : .67);
-    view.cy = view.height * (mobile ? .57 : .53);
-    const introScale = !mobile && !entered ? .84 : 1;
-    view.scale = Math.min(view.width / (mobile ? 10.8 : 12.7), view.height / 9.2) * camera.zoom * introScale;
+    view.cy = view.height * (mobile ? .55 : .54);
+    const closeScale = mobile ? 1.05 : entered ? 1.12 : .96;
+    view.scale = Math.min(view.width / (mobile ? 12 : 13.4), view.height / 9.4) * camera.zoom * closeScale;
   }
 
   function project(point) {
@@ -114,25 +114,41 @@
 
   function drawSky(time) {
     const gradient = ctx.createLinearGradient(0,0,0,view.height);
-    gradient.addColorStop(0, palette.sky); gradient.addColorStop(.63, palette.skyLight); gradient.addColorStop(1, '#b7d8a1');
+    gradient.addColorStop(0, '#82cde3'); gradient.addColorStop(.48, palette.skyLight); gradient.addColorStop(1, '#cce3bd');
     ctx.fillStyle = gradient; ctx.fillRect(0,0,view.width,view.height);
-    const sunX = view.width * .82, sunY = view.height * .16;
-    ctx.beginPath();ctx.arc(sunX,sunY,Math.min(view.width,view.height)*.055,0,Math.PI*2);ctx.fillStyle=palette.yellow;ctx.fill();ctx.strokeStyle=palette.ink;ctx.lineWidth=2;ctx.stroke();
+    const sunX = view.width * .82, sunY = view.height * .16, sunRadius=Math.min(view.width,view.height)*.055;
+    const halo=ctx.createRadialGradient(sunX,sunY,sunRadius*.2,sunX,sunY,sunRadius*3.8);halo.addColorStop(0,'rgba(255,238,143,.72)');halo.addColorStop(.45,'rgba(255,238,143,.2)');halo.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=halo;ctx.beginPath();ctx.arc(sunX,sunY,sunRadius*3.8,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,253,243,.42)';ctx.lineWidth=1.5;[2.2,3.15].forEach(r=>{ctx.beginPath();ctx.arc(sunX,sunY,sunRadius*r,0,Math.PI*2);ctx.stroke();});
+    ctx.beginPath();ctx.arc(sunX,sunY,sunRadius,0,Math.PI*2);ctx.fillStyle=palette.yellow;ctx.fill();ctx.strokeStyle=palette.ink;ctx.lineWidth=2;ctx.stroke();
     const cloudOffset = reducedMotion ? 0 : Math.sin(time*.00015)*25;
     drawCloud(view.width*.22+cloudOffset,view.height*.17,1); drawCloud(view.width*.65-cloudOffset*.4,view.height*.1,.65);
-    ctx.fillStyle='rgba(74,124,67,.18)';
-    ctx.beginPath();ctx.moveTo(0,view.height*.54);for(let x=0;x<=view.width;x+=80){ctx.lineTo(x,view.height*.50+Math.sin(x*.014+camera.yaw)*28);}ctx.lineTo(view.width,view.height);ctx.lineTo(0,view.height);ctx.fill();
+    drawMountainLayer(view.height*.42,42,'rgba(84,139,119,.18)',.008,.7);drawMountainLayer(view.height*.5,34,'rgba(63,122,89,.22)',.013,1.8);drawMountainLayer(view.height*.56,24,'rgba(55,110,71,.28)',.018,3.1);
+    ctx.strokeStyle='rgba(23,41,31,.42)';ctx.lineWidth=1.5;[[.12,.28],[.48,.2]].forEach(([x,y])=>{const bx=view.width*x,by=view.height*y;ctx.beginPath();ctx.arc(bx-6,by,7,Math.PI*1.15,Math.PI*1.9);ctx.arc(bx+6,by,7,Math.PI*1.1,Math.PI*1.85);ctx.stroke();});
   }
+
+  function drawMountainLayer(base,amplitude,color,frequency,phase){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,view.height);ctx.lineTo(0,base);for(let x=0;x<=view.width+40;x+=40){const y=base-Math.abs(Math.sin(x*frequency+phase))*amplitude-Math.sin(x*.002+phase)*amplitude*.4;ctx.lineTo(x,y);}ctx.lineTo(view.width,view.height);ctx.closePath();ctx.fill();}
 
   function drawCloud(x,y,size){ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.fillStyle='rgba(255,253,243,.85)';ctx.strokeStyle=palette.ink;ctx.lineWidth=2;ctx.beginPath();ctx.arc(-34,8,22,0,Math.PI*2);ctx.arc(0,-2,33,0,Math.PI*2);ctx.arc(38,10,25,0,Math.PI*2);ctx.rect(-35,8,75,27);ctx.fill();ctx.stroke();ctx.restore();}
 
   function drawIsland() {
-    const top=[], bottom=[]; const count=28;
-    for(let i=0;i<count;i++){const a=Math.PI*2*i/count;const rx=5.1,rz=4.45;top.push(project({x:Math.cos(a)*rx,y:0,z:Math.sin(a)*rz}));bottom.push(project({x:Math.cos(a)*rx,y:-.55,z:Math.sin(a)*rz}));}
+    /* A broad, square earth under a round sky: chamfered corners keep it friendly. */
+    const boundary=[[-4.65,-4.45],[4.65,-4.45],[5.18,-3.92],[5.18,3.92],[4.65,4.45],[-4.65,4.45],[-5.18,3.92],[-5.18,-3.92]];
+    const top=boundary.map(([x,z])=>project({x,y:0,z})),middle=boundary.map(([x,z])=>project({x,y:-.27,z})),bottom=boundary.map(([x,z])=>project({x,y:-.68,z}));
     poly(bottom,palette.soilDark);
-    for(let i=0;i<count;i++){const next=(i+1)%count;if((top[i].depth+top[next].depth)/2>0)poly([top[i],top[next],bottom[next],bottom[i]],i%2?palette.soil:shade(palette.soil,-10));}
+    const sideFaces=boundary.map((point,index)=>{const next=(index+1)%boundary.length;return{depth:(top[index].depth+top[next].depth)/2,index,next};}).sort((a,b)=>a.depth-b.depth);
+    sideFaces.forEach((face,order)=>{poly([middle[face.index],middle[face.next],bottom[face.next],bottom[face.index]],order%2?shade(palette.soilDark,8):palette.soilDark);poly([top[face.index],top[face.next],middle[face.next],middle[face.index]],order%2?palette.soil:shade(palette.soil,-8));});
     poly(top,palette.grass);
-    const inner=[];for(let i=0;i<count;i++){const a=Math.PI*2*i/count;inner.push(project({x:Math.cos(a)*4.73,y:.02,z:Math.sin(a)*4.08}));}poly(inner,palette.grassLight,null);
+    const inner=boundary.map(([x,z])=>project({x:x*.94,y:.025,z:z*.93}));poly(inner,palette.grassLight,null);
+    /* Subtle land parcels make the expanded farm read as cultivated space. */
+    const parcels=[{x:-2.65,z:-2.5,w:2.4,d:1.25,c:'rgba(117,168,80,.32)'},{x:2.7,z:-2.55,w:2.5,d:1.15,c:'rgba(255,211,79,.12)'},{x:-3,z:2.75,w:2.1,d:1.05,c:'rgba(79,123,60,.2)'},{x:2.8,z:2.8,w:2.4,d:.95,c:'rgba(88,185,212,.1)'}];
+    parcels.forEach(parcel=>{const x1=parcel.x-parcel.w/2,x2=parcel.x+parcel.w/2,z1=parcel.z-parcel.d/2,z2=parcel.z+parcel.d/2;poly([project({x:x1,y:.04,z:z1}),project({x:x2,y:.04,z:z1}),project({x:x2,y:.04,z:z2}),project({x:x1,y:.04,z:z2})],parcel.c,'rgba(23,41,31,.13)',1);});
+    drawGroundDetails();
+  }
+
+  function drawGroundDetails(){
+    const flowers=[[-4,1.5,'#fff7dc'],[-3.6,1.2,'#ffd34f'],[-.75,3.4,'#fff7dc'],[.05,3.15,'#ef8d3b'],[3.7,-1.1,'#ffd34f'],[3.95,-1.45,'#fff7dc'],[-3.65,-3.2,'#ef8d3b'],[1.55,-3.5,'#fff7dc']];
+    flowers.forEach(([x,z,color])=>{const p=project({x,y:.1,z});ctx.strokeStyle=palette.grassDark;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,p.y+4);ctx.lineTo(p.x,p.y-2);ctx.stroke();ctx.fillStyle=color;for(let a=0;a<4;a++){const angle=a*Math.PI/2;ctx.beginPath();ctx.arc(p.x+Math.cos(angle)*3,p.y-3+Math.sin(angle)*3,2.4,0,Math.PI*2);ctx.fill();}ctx.fillStyle=palette.orange;ctx.beginPath();ctx.arc(p.x,p.y-3,1.8,0,Math.PI*2);ctx.fill();});
+    [[-4.25,-2.15],[4.15,2.45],[.75,-3.65]].forEach(([x,z],index)=>{const p=project({x,y:.06,z}),size=view.scale*(.11+index*.015);poly([{x:p.x-size,y:p.y+size*.35},{x:p.x-size*.4,y:p.y-size*.55},{x:p.x+size*.45,y:p.y-size*.7},{x:p.x+size,y:p.y+size*.4}],index===1?'#9bb1a0':'#b9b9a7',palette.ink,1);});
   }
 
   function drawPath() {
