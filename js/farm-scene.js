@@ -145,7 +145,7 @@
   function drawTree(x,z,scale=1){box3d(x,.02,z,.22,.75*scale,.22,palette.woodDark);circle3d(x,.95*scale,z,.48*view.scale/view.scale*scale,palette.grassDark);circle3d(x-.18*scale,1.2*scale,z,.38*scale,palette.grass);circle3d(x+.2*scale,1.15*scale,z,.36*scale,palette.grassLight);}
   function drawField(x,z){for(let row=0;row<3;row++){const z1=z+(row-1)*.48;const p1=project({x:x-.95,y:.035,z:z1-.18}),p2=project({x:x+.95,y:.035,z:z1-.18}),p3=project({x:x+.95,y:.035,z:z1+.18}),p4=project({x:x-.95,y:.035,z:z1+.18});poly([p1,p2,p3,p4],row%2?shade(palette.soil,9):palette.soil);for(let col=0;col<5;col++){const cx=x-.76+col*.38;const cp=project({x:cx,y:.19,z:z1});ctx.fillStyle=row===1?palette.yellow:palette.grassDark;ctx.strokeStyle=palette.ink;ctx.lineWidth=1;ctx.beginPath();ctx.arc(cp.x,cp.y,Math.max(2,view.scale*.055),0,Math.PI*2);ctx.fill();ctx.stroke();}}return project({x,y:.65,z});}
   function drawAnimal(x,z,type='cow',flip=1){
-    const anchor=project({x,y:.42,z}),scale=Math.max(8,view.scale*(type==='cow'?.22:.18));
+    const anchor=project({x,y:.42,z}),scale=Math.max(10,view.scale*(type==='cow'?.3:.24));
     ctx.save();ctx.translate(anchor.x,anchor.y);ctx.scale(flip,1);ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle=palette.ink;ctx.lineWidth=1.6;
     ctx.fillStyle='rgba(21,39,29,.18)';ctx.beginPath();ctx.ellipse(0,scale*1.05,scale*(type==='cow'?1.7:1.2),scale*.27,0,0,Math.PI*2);ctx.fill();
     if(type==='cow'){
@@ -180,7 +180,7 @@
     const corners=[[-1.25,-.8],[1.25,-.8],[1.25,.8],[-1.25,.8]];
     corners.forEach(([dx,dz])=>box3d(x+dx,.02,z+dz,.1,.5,.1,palette.wood));
     for(let i=0;i<4;i++){const a=corners[i],b=corners[(i+1)%4];line([project({x:x+a[0],y:.35,z:z+a[1]}),project({x:x+b[0],y:.35,z:z+b[1]})],palette.woodDark,3);}
-    drawAnimal(x-.45,z,'cow',1);drawAnimal(x+.55,z+.25,'chicken',-1);return project({x,y:1.05,z});
+    drawAnimal(x-.48,z-.08,'cow',1);drawAnimal(x+.62,z+.3,'chicken',-1);return project({x,y:1.58,z});
   }
   function drawPond(x,z){const pts=[];for(let i=0;i<20;i++){const a=i/20*Math.PI*2;pts.push(project({x:x+Math.cos(a)*.85,y:.04,z:z+Math.sin(a)*.55}));}poly(pts,palette.water,palette.ink);const c=project({x,y:.06,z});ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(c.x,c.y,view.scale*.3,view.scale*.06,0,0,Math.PI*2);ctx.stroke();return project({x,y:.75,z});}
   function drawMailbox(x,z){box3d(x,.02,z,.12,.8,.12,palette.woodDark);box3d(x,.82,z,.65,.4,.42,palette.red);const flag1=project({x:x+.28,y:1.02,z}),flag2=project({x:x+.28,y:1.55,z});line([flag1,flag2],palette.ink,3);const f=project({x:x+.46,y:1.48,z});ctx.fillStyle=palette.yellow;ctx.strokeStyle=palette.ink;ctx.lineWidth=1.5;ctx.fillRect(f.x-8,f.y-6,16,12);ctx.strokeRect(f.x-8,f.y-6,16,12);return project({x,y:1.65,z});}
